@@ -9,6 +9,7 @@ var config string UniqueRS2ServerId;
 
 var int Retries;
 var bool bRetryOnClosed;
+var bool bShuttingDown;
 
 // Must store reference to parent in order to start
 // Open() cancellation timer in case the Open() call fails.
@@ -88,6 +89,9 @@ event Resolved(IpAddr Addr)
 {
     local int BoundPort;
 
+    if (bShuttingDown)
+        return;
+
     `log("[TKLMutatorTcpLinkClient]: " $ TKLServerHost $ " resolved to " $ IpAddrToString(Addr));
     Addr.Port = TKLServerPort;
 
@@ -110,6 +114,9 @@ event Resolved(IpAddr Addr)
 
 event ResolveFailed()
 {
+    if (bShuttingDown)
+        return;
+
     `log("[TKLMutatorTcpLinkClient]: unable to resolve, retrying in 5 seconds " $ TKLServerHost);
     Retry();
 }
@@ -122,6 +129,9 @@ event Opened()
 
 event Closed()
 {
+    if (bShuttingDown)
+        return;
+
     if (bRetryOnClosed)
     {
         `log("[TKLMutatorTcpLinkClient]: connection closed unexpectedly, retrying in 5 seconds");
@@ -132,6 +142,14 @@ event Closed()
         `log("[TKLMutatorTcpLinkClient]: connection closed");
         bAcceptNewData = False;
     }
+}
+
+final function BeginShutdown()
+{
+    bShuttingDown  = True;
+    bRetryOnClosed = False;
+    ClearTimer('ResolveServer');
+    Close();
 }
 
 function bool Close()

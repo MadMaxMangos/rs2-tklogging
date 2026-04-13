@@ -202,7 +202,7 @@ final function CloseLink()
     if (TKLMTLC != None)
     {
         bLinkEnabled = False;
-        TKLMTLC.Close();
+        TKLMTLC.BeginShutdown();
         TKLMTLC.Destroy();
     }
 }
@@ -210,6 +210,11 @@ final function CloseLink()
 // Stupid hack to avoid TKLMTLC.Open() from spamming logs if it fails.
 final function SetCancelOpenLinkTimer(float Time)
 {
+    if (Time <= 0)
+    {
+        ClearTimer('CancelOpenLink');
+        return;
+    }
     SetTimer(Time, False, 'CancelOpenLink');
 }
 
@@ -289,6 +294,8 @@ final function ProcessQueue()
 event Destroyed()
 {
     `log("[TKLMutator]: Destroyed()");
+    ClearTimer('CancelOpenLink');
+    ClearTimer('ProcessQueue');
     CleanUp();
     super.Destroyed();
 }
