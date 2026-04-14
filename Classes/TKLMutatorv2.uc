@@ -1,5 +1,5 @@
-class TKLMutator extends ROMutator
-    config(Mutator_TKLMutator_Server);
+class TKLMutatorv2 extends ROMutator
+    config(Mutator_TKLMutatorv2_Server);
 
 var config bool bLogTeamKills;
 var config bool bLogKills;
@@ -12,7 +12,7 @@ var string Cause;
 var string TeamKillAction;
 var string KillAction;
 var FileWriter Writer;
-var TKLMutatorTcpLinkClient TKLMTLC;
+var TKLMutatorv2TcpLinkClient TKLMTLC;
 
 var string FileRecord; // Written to file on disk.
 // var string NetRecord; // Compressed log record sent over network.
@@ -38,12 +38,12 @@ final function FirstTimeConfig()
         && (!bSendLogToServer)
         && (Len(TKLFileName) == 0))
     {
-        `log("[TKLMutator]: setting config values to first time defaults");
+        `log("[TKLMutatorv2]: setting config values to first time defaults");
         bLogTeamKills = True;
         bLogKills = False;
         bSendLogToServer = False;
         TKLFileName = "KillLog";
-        class'TKLMutatorTcpLinkClient'.static.StaticFirstTimeConfig();
+        class'TKLMutatorv2TcpLinkClient'.static.StaticFirstTimeConfig();
     }
 }
 
@@ -52,17 +52,17 @@ function PreBeginPlay()
     FirstTimeConfig();
     SaveConfig();
 
-    `log("[TKLMutator]: initializing TKLMutator");
+    `log("[TKLMutatorv2]: initializing TKLMutator");
 
     if (bLogTeamKills)
     {
-        `log("[TKLMutator]: team kill logging enabled");
+        `log("[TKLMutatorv2]: team kill logging enabled");
         bEnabled = True;
     }
 
     if (bLogKills)
     {
-        `log("[TKLMutator]: kill logging enabled");
+        `log("[TKLMutatorv2]: kill logging enabled");
         bEnabled = True;
     }
 
@@ -75,25 +75,25 @@ function PreBeginPlay()
         if (Writer == None)
         {
             bEnabled = False;
-            `log("[TKLMutator]: error spawning FileWriter");
+            `log("[TKLMutatorv2]: error spawning FileWriter");
             return;
         }
         OpenLogFile(TKLFileName);
 
         if (bSendLogToServer)
         {
-            `log("[TKLMutator]: log sending to TKLServer is enabled, "
-                $ "attempting to spawn TKLMutatorTcpLinkClient");
-            TKLMTLC = Spawn(class'TKLMutatorTcpLinkClient');
+            `log("[TKLMutatorv2]: log sending to TKLServer is enabled, "
+                $ "attempting to spawn TKLMutatorv2TcpLinkClient");
+            TKLMTLC = Spawn(class'TKLMutatorv2TcpLinkClient');
             if (TKLMTLC == None)
             {
                 bLinkEnabled = False;
-                `log("[TKLMutator]: error spawning TKLMutatorTcpLinkClient");
+                `log("[TKLMutatorv2]: error spawning TKLMutatorv2TcpLinkClient");
                 return;
             }
             TKLMTLC.Parent = self;
             bLinkEnabled = True;
-            `log("[TKLMutator]: TKLMutatorTcpLinkClient initialized");
+            `log("[TKLMutatorv2]: TKLMutatorv2TcpLinkClient initialized");
         }
 
         SetTimer(0.1, True, 'ProcessQueue');
@@ -222,7 +222,7 @@ final function CancelOpenLink()
 {
     if (TKLMTLC != None && !TKLMTLC.IsConnected())
     {
-        `log("[TKLMutator]: cancelling link connection attempt");
+        `log("[TKLMutatorv2]: cancelling link connection attempt");
         TKLMTLC.Close();
     }
 }
@@ -236,7 +236,7 @@ final function CleanUp()
 
 // function ModifyMatchWon(out byte out_WinningTeam, out byte out_WinCondition, optional out byte out_RoundWinningTeam)
 // {
-//     `log("[TKLMutator]: ModifyMatchWon()");
+//     `log("[TKLMutatorv2]: ModifyMatchWon()");
 //     CleanUp();
 //     super.ModifyMatchWon(out_WinningTeam, out_WinCondition, out_RoundWinningTeam);
 // }
@@ -293,7 +293,7 @@ final function ProcessQueue()
 
 event Destroyed()
 {
-    `log("[TKLMutator]: Destroyed()");
+    `log("[TKLMutatorv2]: Destroyed()");
     ClearTimer('CancelOpenLink');
     ClearTimer('ProcessQueue');
     CleanUp();

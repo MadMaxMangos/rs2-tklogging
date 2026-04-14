@@ -1,5 +1,5 @@
-class TKLMutatorTcpLinkClient extends BufferedTcpLink
-    config(Mutator_TKLMutator_Server);
+class TKLMutatorv2TcpLinkClient extends BufferedTcpLink
+    config(Mutator_TKLMutatorv2_Server);
 
 // See: https://github.com/tuokri/tklserver
 var config string TKLServerHost;
@@ -16,7 +16,7 @@ var bool bShuttingDown;
 // When Open() call fails, it will block and spam log
 // with errors. Timers in this class will also not work
 // while the call to Open() is blocking.
-var TKLMutator Parent;
+var TKLMutatorv2 Parent;
 
 static final function StaticFirstTimeConfig()
 {
@@ -25,7 +25,7 @@ static final function StaticFirstTimeConfig()
         && (default.MaxRetries == 0)
         && (Len(default.UniqueRS2ServerId) == 0))
     {
-        `log("[TKLMutatorTcpLinkClient]: setting config values to first time defaults");
+        `log("[TKLMutatorv2TcpLinkClient]: setting config values to first time defaults");
         default.TKLServerHost = "localhost";
         default.TKLServerPort = 8586;
         default.MaxRetries = 5;
@@ -41,7 +41,7 @@ final function FirstTimeConfig()
         && (MaxRetries == 0)
         && (Len(UniqueRS2ServerId) == 0))
     {
-        `log("[TKLMutatorTcpLinkClient]: setting config values to first time defaults");
+        `log("[TKLMutatorv2TcpLinkClient]: setting config values to first time defaults");
         TKLServerHost = "localhost";
         TKLServerPort = 8586;
         MaxRetries = 5;
@@ -58,7 +58,7 @@ event PreBeginPlay()
 
 final function ResolveServer()
 {
-    `log("[TKLMutatorTcpLinkClient]: resolving: " $ TKLServerHost);
+    `log("[TKLMutatorv2TcpLinkClient]: resolving: " $ TKLServerHost);
     Resolve(TKLServerHost);
 }
 
@@ -71,12 +71,12 @@ event PostBeginPlay()
     if (MaxRetries < 0)
     {
         MaxRetries = `MAX_RESOLVE_RETRIES;
-        `log("[TKLMutatorTcpLinkClient]: invalid MaxRetries, defaulting to: " $ `MAX_RESOLVE_RETRIES);
+        `log("[TKLMutatorv2TcpLinkClient]: invalid MaxRetries, defaulting to: " $ `MAX_RESOLVE_RETRIES);
     }
 
     if (Len(UniqueRS2ServerId) != 4)
     {
-        `log("[TKLMutatorTcpLinkClient]: invalid UniqueRS2ServerId, must be exactly 4 characters long");
+        `log("[TKLMutatorv2TcpLinkClient]: invalid UniqueRS2ServerId, must be exactly 4 characters long");
         return;
     }
 
@@ -92,22 +92,22 @@ event Resolved(IpAddr Addr)
     if (bShuttingDown)
         return;
 
-    `log("[TKLMutatorTcpLinkClient]: " $ TKLServerHost $ " resolved to " $ IpAddrToString(Addr));
+    `log("[TKLMutatorv2TcpLinkClient]: " $ TKLServerHost $ " resolved to " $ IpAddrToString(Addr));
     Addr.Port = TKLServerPort;
 
     BoundPort = BindPort();
     if (BoundPort == 0)
     {
-        `log("[TKLMutatorTcpLinkClient]: failed to bind port");
+        `log("[TKLMutatorv2TcpLinkClient]: failed to bind port");
         Retry();
         return;
     }
 
-    `log("[TKLMutatorTcpLinkClient]: bound to port: " $ BoundPort);
+    `log("[TKLMutatorv2TcpLinkClient]: bound to port: " $ BoundPort);
 
     if (!Open(Addr))
     {
-        `log("[TKLMutatorTcpLinkClient]: failed to open connection, retrying in 5 seconds");
+        `log("[TKLMutatorv2TcpLinkClient]: failed to open connection, retrying in 5 seconds");
         Retry();
     }
 }
@@ -117,13 +117,13 @@ event ResolveFailed()
     if (bShuttingDown)
         return;
 
-    `log("[TKLMutatorTcpLinkClient]: unable to resolve, retrying in 5 seconds " $ TKLServerHost);
+    `log("[TKLMutatorv2TcpLinkClient]: unable to resolve, retrying in 5 seconds " $ TKLServerHost);
     Retry();
 }
 
 event Opened()
 {
-    `log("[TKLMutatorTcpLinkClient]: connection opened");
+    `log("[TKLMutatorv2TcpLinkClient]: connection opened");
     bAcceptNewData = True;
 }
 
@@ -134,12 +134,12 @@ event Closed()
 
     if (bRetryOnClosed)
     {
-        `log("[TKLMutatorTcpLinkClient]: connection closed unexpectedly, retrying in 5 seconds");
+        `log("[TKLMutatorv2TcpLinkClient]: connection closed unexpectedly, retrying in 5 seconds");
         Retry();
     }
     else
     {
-        `log("[TKLMutatorTcpLinkClient]: connection closed");
+        `log("[TKLMutatorv2TcpLinkClient]: connection closed");
         bAcceptNewData = False;
     }
 }
@@ -162,7 +162,7 @@ function bool SendBufferedData(string Text)
 {
     // if (!IsConnected())
     // {
-    //     `log("[TKLMutatorTcpLinkClient]: attempting to queue data but connection is not open");
+    //     `log("[TKLMutatorv2TcpLinkClient]: attempting to queue data but connection is not open");
     // }
     Text = UniqueRS2ServerId $ Text $ LF;
     return super.SendBufferedData(Text);
@@ -178,7 +178,7 @@ final function Retry()
 {
     if (Retries > MaxRetries)
     {
-        `log("[TKLMutatorTcpLinkClient]: max retries exceeded (" $ MaxRetries $ ")");
+        `log("[TKLMutatorv2TcpLinkClient]: max retries exceeded (" $ MaxRetries $ ")");
         Close();
         return;
     }
